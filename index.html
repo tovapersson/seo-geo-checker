@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO & GEO Checker</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f9fafb; color: #111827; margin: 0; padding: 40px 20px; }
+        .card { max-width: 650px; margin: 0 auto; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        h1 { font-size: 2rem; font-weight: 800; text-align: center; margin-bottom: 8px; }
+        p.subtitle { text-align: center; color: #6b7280; margin-bottom: 32px; }
+        input { width: 100%; padding: 14px; border: 1px solid #d1d5db; border-radius: 8px; margin-bottom: 16px; box-sizing: border-box; font-size: 1rem; }
+        button { width: 100%; background: #000; color: white; padding: 14px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem; transition: opacity 0.2s; }
+        button:disabled { background: #9ca3af; cursor: not-allowed; }
+        #result { display: none; margin-top: 32px; border-top: 1px solid #e5e7eb; padding-top: 24px; }
+        .score { font-size: 1.25rem; font-weight: bold; color: #059669; margin-bottom: 16px; }
+        .analysis { background: #f3f4f6; padding: 20px; border-radius: 12px; white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6; }
+        .loader { display: none; text-align: center; margin-top: 16px; color: #4b5563; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>SEO & GEO Checker</h1>
+    <p class="subtitle">Se hur din webbplats presterar i AI-sök och Google.</p>
+    
+    <input type="url" id="targetUrl" placeholder="https://www.exempel.se" required>
+    <button id="btn" onclick="startAnalysis()">Analysera Webbplats</button>
+    <div id="loading" class="loader">Hämtar data från Google och AI...</div>
+
+    <div id="result">
+        <div class="score">Teknisk Score: <span id="val-score">0</span>/100</div>
+        <h3>Analysresultat</h3>
+        <div id="val-analysis" class="analysis"></div>
+    </div>
+</div>
+
+<script>
+    async function startAnalysis() {
+        const url = document.getElementById('targetUrl').value;
+        if(!url) return alert("Ange en URL");
+
+        // UI-ändringar
+        document.getElementById('btn').disabled = true;
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('result').style.display = 'none';
+
+        try {
+            const res = await fetch('http://localhost:3000/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url })
+            });
+            const data = await res.json();
+
+            document.getElementById('val-score').innerText = data.seoScore;
+            document.getElementById('val-analysis').innerText = data.geoAnalysis;
+            document.getElementById('result').style.display = 'block';
+        } catch (e) {
+            alert("Kunde inte nå servern. Kör du 'node server.js'?");
+        } finally {
+            document.getElementById('btn').disabled = false;
+            document.getElementById('loading').style.display = 'none';
+        }
+    }
+</script>
+
+</body>
+</html>
