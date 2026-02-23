@@ -1,69 +1,570 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SEO & GEO Checker</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f9fafb; color: #111827; margin: 0; padding: 40px 20px; }
-        .card { max-width: 650px; margin: 0 auto; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        h1 { font-size: 2rem; font-weight: 800; text-align: center; margin-bottom: 8px; }
-        p.subtitle { text-align: center; color: #6b7280; margin-bottom: 32px; }
-        input { width: 100%; padding: 14px; border: 1px solid #d1d5db; border-radius: 8px; margin-bottom: 16px; box-sizing: border-box; font-size: 1rem; }
-        button { width: 100%; background: #000; color: white; padding: 14px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem; transition: opacity 0.2s; }
-        button:disabled { background: #9ca3af; cursor: not-allowed; }
-        #result { display: none; margin-top: 32px; border-top: 1px solid #e5e7eb; padding-top: 24px; }
-        .score { font-size: 1.25rem; font-weight: bold; color: #059669; margin-bottom: 16px; }
-        .analysis { background: #f3f4f6; padding: 20px; border-radius: 12px; white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6; }
-        .loader { display: none; text-align: center; margin-top: 16px; color: #4b5563; font-size: 0.9rem; }
-    </style>
-</head>
-<body>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SEO & GEO Checker</title>
 
-<div class="card">
-    <h1>SEO & GEO Checker</h1>
-    <p class="subtitle">Se hur din webbplats presterar i AI-sök och Google.</p>
-    
-    <input type="url" id="targetUrl" placeholder="https://www.exempel.se" required>
-    <button id="btn" onclick="startAnalysis()">Analysera Webbplats</button>
-    <div id="loading" class="loader">Hämtar data från Google och AI...</div>
-
-    <div id="result">
-        <div class="score">Teknisk Score: <span id="val-score">0</span>/100</div>
-        <h3>Analysresultat</h3>
-        <div id="val-analysis" class="analysis"></div>
-    </div>
-</div>
-
-<script>
-    async function startAnalysis() {
-        const url = document.getElementById('targetUrl').value;
-        if(!url) return alert("Ange en URL");
-
-        // UI-ändringar
-        document.getElementById('btn').disabled = true;
-        document.getElementById('loading').style.display = 'block';
-        document.getElementById('result').style.display = 'none';
-
-        try {
-            const res = await fetch('http://localhost:3000/analyze', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url })
-            });
-            const data = await res.json();
-
-            document.getElementById('val-score').innerText = data.seoScore;
-            document.getElementById('val-analysis').innerText = data.geoAnalysis;
-            document.getElementById('result').style.display = 'block';
-        } catch (e) {
-            alert("Kunde inte nå servern. Kör du 'node server.js'?");
-        } finally {
-            document.getElementById('btn').disabled = false;
-            document.getElementById('loading').style.display = 'none';
-        }
+  <style>
+    :root{
+      --bg: #f4f5f7;
+      --surface: #ffffff;
+      --ink: #111214;
+      --muted: #6b7280;
+      --line: rgba(17,18,20,.10);
+      --accent: #111214;
+      --soft: rgba(17,18,20,.04);
+      --radius: 18px;
     }
-</script>
 
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      line-height: 1.55;
+      letter-spacing: .1px;
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 56px 20px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .brand h1 {
+      margin: 0 0 6px 0;
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: .2px;
+    }
+
+    .brand p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 62ch;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.06);
+    }
+
+    .inputRow {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    input[type="url"]{
+      width: 100%;
+      padding: 14px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      outline: none;
+      font-size: 15px;
+    }
+
+    input[type="url"]:focus{
+      border-color: rgba(17,18,20,.25);
+      box-shadow: 0 0 0 4px rgba(17,18,20,.06);
+    }
+
+    button {
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform .08s ease, opacity .15s ease;
+      white-space: nowrap;
+    }
+
+    button:hover { opacity: .92; }
+    button:active { transform: translateY(1px); }
+    button:disabled { opacity: .6; cursor: not-allowed; }
+
+    .divider {
+      height: 1px;
+      background: var(--line);
+      margin: 18px 0 0;
+    }
+
+    .sectionTitle {
+      margin: 0;
+      padding: 22px 0 12px;
+      font-size: 12px;
+      letter-spacing: .35em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+    }
+
+    .card {
+      grid-column: span 6;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    @media (max-width: 720px) {
+      .card { grid-column: span 12; }
+      .inputRow { grid-template-columns: 1fr; }
+      button { width: 100%; }
+    }
+
+    .kicker {
+      font-size: 11px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 8px 0;
+    }
+
+    .valueRow {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .value {
+      font-size: 18px;
+      font-weight: 650;
+      margin: 0;
+    }
+
+    .desc {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .badge {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--soft);
+      color: var(--ink);
+      white-space: nowrap;
+    }
+
+    .badge.good { background: rgba(17,18,20,.08); }
+    .badge.mid  { background: rgba(17,18,20,.06); }
+    .badge.low  { background: rgba(17,18,20,.04); }
+
+    .loader {
+      display: none;
+      margin-top: 18px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--soft);
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid rgba(17,18,20,.18);
+      border-top-color: rgba(17,18,20,.65);
+      animation: spin 1s linear infinite;
+      vertical-align: -2px;
+      margin-right: 10px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .results {
+      display: none;
+      margin-top: 22px;
+    }
+
+    .report {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .qa {
+      border-top: 1px solid var(--line);
+      padding-top: 16px;
+      margin-top: 16px;
+    }
+    .qa:first-child {
+      border-top: none;
+      padding-top: 0;
+      margin-top: 0;
+    }
+
+    .question {
+      margin: 0 0 8px 0;
+      font-weight: 700; /* FRÅGA fet */
+      font-size: 15px;
+    }
+    .answer {
+      margin: 0 0 10px 0;
+      font-weight: 400; /* SVAR inte fet */
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .metaRow {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .smallNote {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .fallbackBox {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px dashed rgba(17,18,20,.20);
+      background: rgba(255,255,255,.7);
+      color: var(--muted);
+      font-size: 13px;
+      white-space: pre-wrap;
+    }
+
+    .footerNote {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .copyRow {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .ghostBtn {
+      background: #fff;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <h1>SEO & GEO Checker</h1>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="inputRow">
+        <input id="urlInput" type="url"/>
+        <button id="startBtn" onclick="runAnalysis()">Starta analys</button>
+      </div>
+
+      <div id="loader" class="loader">
+        <span class="spinner"></span>
+        <span>Analys pågår… (kan ta en stund)</span>
+      </div>
+
+      <div class="divider"></div>
+
+      <div id="results" class="results">
+        <h2 class="sectionTitle">SEO / Teknik</h2>
+        <div class="grid">
+          <div class="card">
+            <p class="kicker">Protokoll</p>
+            <div class="valueRow">
+              <p class="value" id="cf-proto">–</p>
+              <span class="badge" id="cf-proto-badge">Info</span>
+            </div>
+            <p class="desc">Påverkar prestanda och upplevelse. Snabbare överföring kan hjälpa SEO indirekt genom bättre laddning och UX.</p>
+          </div>
+
+          <div class="card">
+            <p class="kicker">Säkerhet</p>
+            <div class="valueRow">
+              <p class="value" id="cf-sec">–</p>
+              <span class="badge" id="cf-sec-badge">Info</span>
+            </div>
+            <p class="desc">WAF skyddar mot attacker. Viktigt att inte blockera Googlebot eller viktiga API-anrop av misstag.</p>
+          </div>
+
+          <div class="card">
+            <p class="kicker">Edge Cache</p>
+            <div class="valueRow">
+              <p class="value" id="cf-edge">–</p>
+              <span class="badge" id="cf-edge-badge">Info</span>
+            </div>
+            <p class="desc">Caching på edge kan ge snabbare laddning globalt. Bra för Core Web Vitals och konvertering.</p>
+          </div>
+
+          <div class="card">
+            <p class="kicker">SSL/TLS</p>
+            <div class="valueRow">
+              <p class="value" id="cf-ssl">–</p>
+              <span class="badge" id="cf-ssl-badge">Info</span>
+            </div>
+            <p class="desc">HTTPS är standard för SEO. Modern TLS förbättrar säkerhet och minskar risk för varningar i webbläsare.</p>
+          </div>
+        </div>
+
+        <h2 class="sectionTitle">GEO</h2>
+        <div class="report">
+          <div class="metaRow">
+            <span class="badge" id="geo-total">GEO: –</span>
+            <span class="badge" id="geo-count">0 delar</span>
+          </div>
+
+          <div id="geo-list" style="margin-top: 14px;"></div>
+
+          <div class="copyRow">
+            <button class="ghostBtn" onclick="copyReport()">Kopiera rapport</button>
+            <button class="ghostBtn" onclick="toggleRaw()">Visa/dölj råtext</button>
+          </div>
+
+          <div id="geo-raw" class="fallbackBox" style="display:none;"></div>
+
+          <div class="smallNote">
+          </div>
+        </div>
+
+        <div class="footerNote">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let lastGeoText = "";
+
+    function scoreBadgeClass(score) {
+      if (typeof score !== "number") return "";
+      if (score >= 8) return "good";
+      if (score >= 6) return "mid";
+      return "low";
+    }
+
+    // Försöker plocka ut FRÅGA / SVAR / SCORE ur Grok-texten.
+    // Funkar med format som:
+    // FRÅGA: ...
+    // SVAR: ...
+    // SCORE: 7/10
+    function parseGeo(text) {
+      const blocks = [];
+      if (!text || typeof text !== "string") return { blocks, avg: null };
+
+      // Normalisera radbrytningar
+      const t = text.replace(/\r\n/g, "\n");
+
+      // Dela på FRÅGA:
+      const parts = t.split(/FRÅGA:\s*/i).filter(Boolean);
+      for (const part of parts) {
+        const qMatch = part.match(/^([\s\S]*?)\n\s*SVAR:\s*/i);
+        const aMatch = part.match(/\n\s*SVAR:\s*([\s\S]*?)(?:\n\s*SCORE:\s*|$)/i);
+        const sMatch = part.match(/\n\s*SCORE:\s*([0-9]{1,2})\s*\/\s*10/i);
+
+        const question = qMatch ? qMatch[1].trim() : null;
+        const answer = aMatch ? aMatch[1].trim() : null;
+        const score = sMatch ? Number(sMatch[1]) : null;
+
+        // Släng bort tomma “block”
+        if (question || answer || score !== null) {
+          blocks.push({ question, answer, score });
+        }
+      }
+
+      const scores = blocks.map(b => b.score).filter(s => typeof s === "number" && !Number.isNaN(s));
+      const avg = scores.length ? (scores.reduce((a,b)=>a+b,0) / scores.length) : null;
+
+      return { blocks, avg };
+    }
+
+    function renderGeo(blocks, avg) {
+      const list = document.getElementById("geo-list");
+      list.innerHTML = "";
+
+      document.getElementById("geo-count").innerText = `${blocks.length} delar`;
+
+      if (typeof avg === "number") {
+        const rounded = Math.round(avg * 10) / 10;
+        const cls = scoreBadgeClass(rounded);
+        const badge = document.getElementById("geo-total");
+        badge.className = "badge " + cls;
+        badge.innerText = `GEO: ${rounded}/10 (snitt)`;
+      } else {
+        const badge = document.getElementById("geo-total");
+        badge.className = "badge";
+        badge.innerText = "GEO: –";
+      }
+
+      // Skapa Q/A blocks
+      if (!blocks.length) {
+        list.innerHTML = `<div class="smallNote">Kunde inte tolka texten i FRÅGA/SVAR/SCORE-format. Kolla råtexten nedan.</div>`;
+        return;
+      }
+
+      blocks.forEach((b) => {
+        const wrap = document.createElement("div");
+        wrap.className = "qa";
+
+        const q = document.createElement("p");
+        q.className = "question";
+        q.textContent = b.question ? `FRÅGA: ${b.question}` : "FRÅGA: (saknas)";
+
+        const a = document.createElement("p");
+        a.className = "answer";
+        a.textContent = b.answer ? `SVAR: ${b.answer}` : "SVAR: (saknas)";
+
+        const meta = document.createElement("div");
+        meta.className = "metaRow";
+
+        const scoreBadge = document.createElement("span");
+        const cls = scoreBadgeClass(b.score);
+        scoreBadge.className = "badge " + cls;
+        scoreBadge.textContent = (typeof b.score === "number") ? `SCORE: ${b.score}/10` : "SCORE: –";
+
+        meta.appendChild(scoreBadge);
+
+        wrap.appendChild(q);
+        wrap.appendChild(a);
+        wrap.appendChild(meta);
+
+        list.appendChild(wrap);
+      });
+    }
+
+    function setCFBadges(cfData) {
+      const proto = (cfData?.protocol || "").toUpperCase();
+      const sec = (cfData?.security || "").toUpperCase();
+      const edge = (cfData?.edge || "").toUpperCase();
+      const ssl = (cfData?.ssl || "").toUpperCase();
+
+      // Diskreta badges, inga “skrikiga” färger (samma ton som din portfolio)
+      document.getElementById("cf-proto-badge").innerText = proto.includes("HTTP/3") ? "Modernt" : "Info";
+      document.getElementById("cf-sec-badge").innerText   = sec.includes("WAF") ? "Skydd" : "Info";
+      document.getElementById("cf-edge-badge").innerText  = edge ? "Cache" : "Info";
+      document.getElementById("cf-ssl-badge").innerText   = ssl.includes("TLS") ? "HTTPS" : "Info";
+    }
+
+    async function runAnalysis() {
+      const url = document.getElementById("urlInput").value.trim();
+      const loader = document.getElementById("loader");
+      const results = document.getElementById("results");
+      const btn = document.getElementById("startBtn");
+
+      if (!url) return alert("Ange en URL!");
+
+      // Reset UI
+      btn.disabled = true;
+      loader.style.display = "block";
+      results.style.display = "none";
+      document.getElementById("geo-list").innerHTML = "";
+      document.getElementById("geo-raw").style.display = "none";
+      document.getElementById("geo-raw").innerText = "";
+      document.getElementById("geo-total").innerText = "GEO: –";
+      document.getElementById("geo-total").className = "badge";
+      document.getElementById("geo-count").innerText = "0 delar";
+
+      document.getElementById("cf-proto").innerText = "–";
+      document.getElementById("cf-sec").innerText = "–";
+      document.getElementById("cf-edge").innerText = "–";
+      document.getElementById("cf-ssl").innerText = "–";
+
+      try {
+        const response = await fetch("http://127.0.0.1:8888/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url })
+        });
+
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(`Serverfel (${response.status}): ${text}`);
+        }
+
+        const data = await response.json();
+
+        // Cloudflare -> SEO Teknik
+        document.getElementById("cf-proto").innerText = data?.cfData?.protocol || "–";
+        document.getElementById("cf-sec").innerText   = data?.cfData?.security || "–";
+        document.getElementById("cf-edge").innerText  = data?.cfData?.edge || "–";
+        document.getElementById("cf-ssl").innerText   = data?.cfData?.ssl || "–";
+        setCFBadges(data?.cfData);
+
+        // Grok -> SEO / AI (GEO)
+        lastGeoText = data?.geoAnalysis || "";
+        document.getElementById("geo-raw").innerText = lastGeoText || "(tomt)";
+
+        const parsed = parseGeo(lastGeoText);
+        renderGeo(parsed.blocks, parsed.avg);
+
+        loader.style.display = "none";
+        results.style.display = "block";
+      } catch (err) {
+        loader.style.display = "none";
+        results.style.display = "block";
+
+        // Visa felet snyggt i samma report-container
+        lastGeoText = "❌ Fel: " + (err?.message || String(err));
+        document.getElementById("geo-raw").innerText = lastGeoText;
+        document.getElementById("geo-list").innerHTML = `
+          <div class="smallNote">${lastGeoText}</div>
+        `;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function toggleRaw() {
+      const el = document.getElementById("geo-raw");
+      el.style.display = (el.style.display === "none") ? "block" : "none";
+    }
+
+    async function copyReport() {
+      try {
+        await navigator.clipboard.writeText(lastGeoText || "");
+        alert("Rapport kopierad!");
+      } catch {
+        alert("Kunde inte kopiera (din webbläsare blockerar clipboard).");
+      }
+    }
+  </script>
 </body>
 </html>

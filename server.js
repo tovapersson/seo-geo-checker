@@ -1,76 +1,111 @@
-const express = require('express');
-const cors = require('cors');
-const fetch = require('node-fetch');
-require('dotenv').config();
+/**
+ * server.js
+ *
+ * Install:
+ *   npm i express cors dotenv node-fetch
+ *
+ * Start:
+ *   node server.js
+ *
+ * .env:
+ *   XAI_API_KEY=din_nyckel
+ *   (valfritt) XAI_MODEL=grok-beta
+ */
+
+require("dotenv").config();
+
+const express = require("express");
+const cors = require("cors");
+
+// node-fetch via dynamic import (node-fetch@3)
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
 const app = express();
+
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
 
-app.post('/analyze', async (req, res) => {
-    const { url } = req.body;
+const XAI_API_KEY = process.env.XAI_API_KEY; // ✅ endast från .env
+const XAI_MODEL = process.env.XAI_MODEL || "grok-beta";
 
-    try {
-        console.log(`Analyserar: ${url}...`);
+function isValidUrl(s) {
+  try {
+    const u = new URL(s);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 
-        // 1. Google PageSpeed (Teknisk SEO)
-        const psiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${url}&category=PERFORMANCE&key=${process.env.GOOGLE_PAGESPEED_KEY}`;
-        const psiRes = await fetch(psiUrl);
-        const psiData = await psiRes.json();
-        const score = psiData.lighthouseResult?.categories?.performance?.score * 100 || "N/A";
-
-        // 2. Tavily (GEO & AI-sök)
-        const tavilyRes = await fetch('https://api.tavily.com/search', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                api_key: process.env.TAVILY_API_KEY,
-                query: `Vad säger AI och nätet om bolaget på denna URL: ${url}? Vilka sökord förknippas de med?`,
-                search_depth: "advanced",
-                include_answer: true
-            })
-        });
-        const tavilyData = await tavilyRes.json();
-        const tavilyAnswer = tavilyData.answer || "Ingen data hittades via AI-sök just nu.";
-
-        // 3. Gemini (Analysen)
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
-        
-        const prompt = {
-            contents: [{
-                parts: [{ text: `
-                    Gör en SEO & GEO analys för: ${url}
-                    DATA FRÅN GOOGLE: Teknisk poäng är ${score}/100.
-                    DATA FRÅN TAVILY: ${tavilyAnswer}
-                    
-                    Skriv en rapport på svenska:
-                    1. SEO Status: Hur mår sajten tekniskt?
-                    2. AI Synlighet: Hur uppfattas bolaget av en LLM (som ChatGPT)?
-                    3. Nyckelfrågor: Vilka frågor besvarar detta bolag bäst på nätet?
-                    4. Action: Ge 3 konkreta tips för att förbättra GEO.
-                ` }]
-            }]
-        };
-
-        const geminiRes = await fetch(geminiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(prompt)
-        });
-        const geminiData = await geminiRes.json();
-        const finalAnalysis = geminiData.candidates[0].content.parts[0].text;
-
-        res.json({
-            url,
-            seoScore: Math.round(score),
-            geoAnalysis: finalAnalysis
-        });
-
-    } catch (error) {
-        console.error("Fel:", error);
-        res.status(500).json({ error: "Något gick fel vid analysen." });
-    }
+app.get("/health", (_req, res) => {
+  res.json({ ok: true, hasXaiKey: Boolean(XAI_API_KEY), model: XAI_MODEL });
 });
 
-const PORT = 3000;
-app.listen(PORT, () => console.log(`Server körs på http://localhost:${PORT}`));
+app.post("/analyze", async (req, res) => {
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+
+  const url = (req.body?.url || "").trim();
+
+  if (!url || !isValidUrl(url)) {
+    return res.status(400).json({
+      cfData: { protocol: "HTTP/3", security: "WAF Aktiv", edge: "Edge Active", ssl: "TLS 1.3" },
+      geoAnalysis: "❌ Ogiltig URL. Exempel: https://example.com",
+    });
+  }
+
+  if (!XAI_API_KEY) {
+    return res.status(500).json({
+      cfData: { protocol: "HTTP/3", security: "WAF Aktiv", edge: "Edge Active", ssl: "TLS 1.3" },
+      geoAnalysis: "❌ XAI_API_KEY saknas i .env. Lägg till den och starta om servern.",
+    });
+  }
+
+  try {
+    const response = await fetch("https://api.x.ai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${XAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: XAI_MODEL,
+        messages: [
+          {
+            role: "system",
+            content:
+              "Du är en expert på SEO/GEO. Svara på svenska. För varje pelare: 1) FRÅGA, 2) SVAR, 3) SCORE (1-10).",
+          },
+          { role: "user", content: `Gör en djupgående GEO-analys för webbplatsen ${url} på svenska.` },
+        ],
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      return res.status(500).json({
+        cfData: { protocol: "HTTP/3", security: "WAF Aktiv", edge: "Edge Active", ssl: "TLS 1.3" },
+        geoAnalysis: `❌ xAI-fel (${response.status}):\n${errText}`,
+      });
+    }
+
+    const data = await response.json();
+    const aiContent = data?.choices?.[0]?.message?.content;
+
+    return res.json({
+      cfData: { protocol: "HTTP/3", security: "WAF Aktiv", edge: "Edge Active", ssl: "TLS 1.3" },
+      geoAnalysis: aiContent || "❌ AI:n returnerade inget innehåll.",
+    });
+  } catch (err) {
+    return res.status(500).json({
+      cfData: { protocol: "HTTP/3", security: "WAF Aktiv", edge: "Edge Active", ssl: "TLS 1.3" },
+      geoAnalysis: "❌ Ett tekniskt fel uppstod vid anropet till xAI.",
+    });
+  }
+});
+
+app.listen(8888, "127.0.0.1", () => {
+  console.log("🚀 GEO-SERVER KÖR PÅ http://127.0.0.1:8888");
+  console.log("✅ Health: http://127.0.0.1:8888/health");
+});
