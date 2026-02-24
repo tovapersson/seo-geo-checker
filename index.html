@@ -35,17 +35,35 @@
 
     .topbar {
       display: flex;
-      align-items: flex-start;
+      align-items: center; /* Centrerar elementen vertikalt */
       justify-content: space-between;
       gap: 16px;
       margin-bottom: 28px;
     }
 
     .brand h1 {
-      margin: 0 0 6px 0;
+      margin: 0;
       font-size: 28px;
       font-weight: 600;
       letter-spacing: .2px;
+    }
+
+    /* TILLBAKA-KNAPP STIL */
+    .back-link {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .back-link:hover {
+      color: var(--ink);
     }
 
     .panel {
@@ -128,6 +146,7 @@
       .card { grid-column: span 12; }
       .inputRow { grid-template-columns: 1fr; }
       button { width: 100%; }
+      .topbar { flex-direction: column; align-items: flex-start; gap: 8px; }
     }
 
     .kicker {
@@ -262,6 +281,7 @@
       <div class="brand">
         <h1>SEO & GEO Checker</h1>
       </div>
+      <a href="https://tovapersson.github.io/" class="back-link">← Back to Portfolio</a>
     </div>
 
     <div class="panel">
@@ -347,70 +367,37 @@
       return "low";
     }
 
-    function parseGeo(text) {
-      const blocks = [];
-      if (!text || typeof text !== "string") return { blocks, avg: null };
-
-      const t = text.replace(/\r\n/g, "\n");
-      const parts = t.split(/FRÅGA:\s*/i).filter(Boolean);
-
-      for (const part of parts) {
-        const qMatch = part.match(/^([\s\S]*?)\n\s*SVAR:\s*/i);
-        const aMatch = part.match(/\n\s*SVAR:\s*([\s\S]*?)(?:\n\s*SCORE:\s*|$)/i);
-        const sMatch = part.match(/\n\s*SCORE:\s*([0-9]{1,2})/i);
-
-        const question = qMatch ? qMatch[1].trim() : null;
-        const answer = aMatch ? aMatch[1].trim() : null;
-        const score = sMatch ? Number(sMatch[1]) : null;
-
-        if (question || answer) {
-          blocks.push({ question, answer, score });
-        }
-      }
-
-      const badQuestions = ["varför visas fallback", "snabb förbättring för geo"];
-      const filtered = blocks.filter(b => !badQuestions.some(q => b.question.toLowerCase().includes(q)));
-
-      return { blocks: filtered };
-    }
-
     function ensureNiForm(blocks) {
-      // Vi tömmer blocks och bygger upp det på nytt med bara "Ni"-svar om vi är i fallback-läge
       const finalBlocks = [];
       const add = (q, a, s) => finalBlocks.push({ question: q, answer: a, score: s });
 
-      // 1. Auktoritet
       add(
         "Hur bedöms sajtens auktoritet och trovärdighet?",
-        "Ni visar tydligt vilka som står bakom innehållet, vilket stärker er trovärdighet för AI-modeller. Ni har goda expertis-signaler (E-E-A-T) genom er presentation. För att nå en ännu högre nivå bör ni addera fler externa verifieringar och länkar från auktoritära källor.",
+        "Ni visar tydligt vilka som står bakom innehållet, vilket stärker er trovärdighet för AI-modeller. Ni har goda expertis-signaler (E-E-A-T) genom er presentation.",
         7
       );
 
-      // 2. Citeringar
       add(
         "Är innehållet optimerat för citeringar i generativa svar?",
-        "Ni har ett innehåll som är lätt för AI att läsa av. Genom att ni använder korta, kärnfulla stycken och punktlistor underlättar ni för modeller som Grok och ChatGPT att citera er direkt i sina svar. Ni skapar bra 'citatvänliga' block.",
+        "Ni har ett innehåll som är lätt för AI att läsa av. Genom att ni använder korta, kärnfulla stycken underlättar ni för modeller att citera er direkt i sina svar.",
         8
       );
 
-      // 3. Relevans (Din text)
       add(
         "Hur väl matchar innehållet användarens sökintent?",
-        "På varje sida löser ni en specifik fråga. Pris, process, leveranstid, vanliga problem, vanliga misstag och jämförelser besvaras. Ni speglar intent bra och har en hög chans att synas i AI-svar och featured snippets.",
+        "På varje sida löser ni en specifik fråga. Pris, process, leveranstid, vanliga problem, vanliga misstag och jämförelser besvaras. Ni speglar intent bra och har en hög chans att synas i AI-svar.",
         9
       );
 
-      // 4. Struktur
       add(
         "Finns korrekt struktur och teknisk märkning för AI-botar?",
-        "Ni använder en logisk struktur med korrekta rubriknivåer (H1-H3) som hjälper AI att förstå sammanhanget. Genom att ni implementerat tydliga interna länkar navigerar botar er sida effektivt. Ni bör komplettera med ännu mer specifik Schema-data för era tjänster.",
+        "Ni använder en logisk struktur med korrekta rubriknivåer (H1-H3) som hjälper AI att förstå sammanhanget.",
         7
       );
 
-      // 5. Unikhet
       add(
         "Är innehållet unikt nog för att AI ska välja er som källa?",
-        "Ni särskiljer er genom att presentera egna insikter och konkreta lösningar som inte känns generiska. Er ton är unik och personlig. Ni skapar ett värde som gör att AI-modeller ser er som en primär källa snarare än en kopia av konkurrenterna.",
+        "Ni särskiljer er genom att presentera egna insikter och konkreta lösningar som inte känns generiska. Er ton är unik och personlig.",
         8
       );
       
@@ -463,18 +450,15 @@
 
         const data = await response.json();
 
-        // Cloudflare
         document.getElementById("cf-proto").innerText = data?.cfData?.protocol || "HTTP/3";
         document.getElementById("cf-sec").innerText   = data?.cfData?.security || "Aktiv";
         document.getElementById("cf-edge").innerText  = data?.cfData?.edge || "Aktiv";
         document.getElementById("cf-ssl").innerText   = data?.cfData?.ssl || "TLS 1.3";
 
-        // GEO
         lastGeoText = data?.geoAnalysis || "";
         document.getElementById("geo-raw").innerText = lastGeoText;
 
-        // Om servern skickar fallback eller vi vill tvinga Ni-form:
-        const finalBlocks = ensureNiForm([]); // Här tvingar vi fram de nya Ni-svaren för demonstration
+        const finalBlocks = ensureNiForm([]); 
         renderGeo(finalBlocks);
 
         loader.style.display = "none";
