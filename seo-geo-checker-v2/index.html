@@ -49,30 +49,6 @@
       font-style: italic; line-height: 1.6; max-width: 420px; margin: 0 auto;
     }
 
-    .back-btn {
-      position: fixed;
-      top: 24px;
-      left: 24px;
-      z-index: 999;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin: 0 auto 24px;
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 10px 22px;
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 0.75rem;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--muted);
-      text-decoration: none;
-      transition: all 0.2s;
-      
-    }
-    .back-btn:hover { background: var(--text); color: white; border-color: var(--text); }
-
     .divider { width: 48px; height: 1px; background: var(--border); margin: 24px auto 0; }
 
     /* Search */
@@ -221,8 +197,7 @@
       <div class="eyebrow">AI-Powered Analysis</div>
       <h1>GEO Tracker</h1>
       <p class="subtitle">Enter any URL and see how AI-engines perceive your brand.</p>
-      <a href="https://tovapersson.github.io/" class="back-btn">← Back to portfolio</a>
-    <div class="divider" style="margin-top:24px"></div>
+      <div class="divider"></div>
     </header>
 
     <div class="search-wrap">
@@ -255,7 +230,7 @@
   </div>
 
   <script>
-    // ⚠️ Ersätt DIN_NYCKEL_HÄR med din Anthropic API-nyckel:
+    // ⚠️ Ersätt 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 med din Anthropic API-nyckel:
     const ANTHROPIC_API_KEY = "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";
 
     function scoreClass(s) {
@@ -274,7 +249,7 @@
         showError('Please enter a valid URL starting with https://');
         return;
       }
-      if (ANTHROPIC_API_KEY === 'DIN_NYCKEL_HÄR') {
+      if (ANTHROPIC_API_KEY === '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') {
         showError('Add your Anthropic API key in the code first.');
         return;
       }

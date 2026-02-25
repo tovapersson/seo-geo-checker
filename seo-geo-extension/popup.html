@@ -1,50 +1,47 @@
-<!doctype html>
-<html lang="sv">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <style>
-    /* Behåll din befintliga CSS från popup.css, men se till att popup-bredden är bra */
-  </style>
-  <link rel="stylesheet" href="popup.css" />
+  <meta charset="UTF-8"/>
+  <title>GEO Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="popup.css"/>
 </head>
 <body>
-  <div class="wrap">
-    <header class="header">
-      <h1>SEO & GEO Checker</h1>
-      <p>Personlig analys av aktuell flik.</p>
+  <div class="container">
+    <header>
+      <div class="eyebrow">AI-Powered Analysis</div>
+      <h1>GEO Tracker</h1>
+      <p class="subtitle">See how AI-engines perceive this site.</p>
+      <div class="divider"></div>
     </header>
 
-    <section class="panel">
-      <div class="row">
-        <input id="urlInput" type="url" />
-        <button id="analyzeBtn">Analysera</button>
+    <div class="search-wrap">
+      <div class="search-box">
+        <input type="text" id="urlInput" placeholder="https://yourwebsite.com" />
+        <button id="analyzeBtn">Analyze</button>
       </div>
-      <div id="loader" class="loader" hidden>
-        <span class="spinner"></span>
-        <span>Grok analyserar...</span>
-      </div>
-      <div id="errorBox" class="error" hidden></div>
-    </section>
+    </div>
 
-    <section id="results" class="results" hidden>
-      <h2 class="sectionTitle">Teknik (Cloudflare)</h2>
-      <div class="grid">
-        <div class="card"><div class="kicker">Protokoll</div><div id="cfProto" class="value">-</div></div>
-        <div class="card"><div class="kicker">Säkerhet</div><div id="cfSec" class="value">-</div></div>
-        <div class="card"><div class="kicker">Edge Cache</div><div id="cfEdge" class="value">-</div></div>
-        <div class="card"><div class="kicker">SSL/TLS</div><div id="cfSsl" class="value">-</div></div>
-      </div>
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Analyzing...</p>
+    </div>
 
-      <h2 class="sectionTitle">GEO Analys</h2>
-      <div class="report">
-        <div class="metaRow">
-          <span id="geoTotal" class="badge">GEO SCORE: -</span>
-          <span id="geoCount" class="badge">0 delar</span>
-        </div>
-        <div id="geoList" class="geoList"></div>
-      </div>
-    </section>
+    <div class="state-msg" id="emptyState">
+      <div class="icon">—</div>
+      <p>Enter a URL to get your GEO analysis</p>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="results-header" id="resultsHeader">
+      <div class="results-title">Analysis for <span id="urlLabel"></span></div>
+      <div class="geo-score" id="geoScore"></div>
+    </div>
+
+    <div class="results" id="results"></div>
   </div>
+
   <script src="popup.js"></script>
 </body>
 </html>
