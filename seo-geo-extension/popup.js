@@ -1,6 +1,3 @@
-// ⚠️ Ersätt DIN_NYCKEL_HÄR med din Anthropic API-nyckel:
-const ANTHROPIC_API_KEY = "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";
-
 function scoreClass(s) {
   if (s >= 8) return 'good';
   if (s >= 6) return 'mid';
@@ -17,10 +14,6 @@ async function runAnalysis() {
     showError('Please enter a valid URL starting with https://');
     return;
   }
-  if (ANTHROPIC_API_KEY === 'DIN_NYCKEL_HÄR') {
-    showError('Add your Anthropic API key in popup.js first.');
-    return;
-  }
 
   const btn = document.getElementById('analyzeBtn');
   btn.disabled = true;
@@ -31,14 +24,9 @@ async function runAnalysis() {
   document.getElementById('errorMsg').classList.remove('show');
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://snazzy-palmier-6ffedd.netlify.app/.netlify/functions/analyze', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 1500,
@@ -67,7 +55,7 @@ Return ONLY valid JSON, nothing else:
     renderResults(url, parsed);
 
   } catch (err) {
-    showError('Something went wrong. Check your API key and try again.');
+    showError('Something went wrong. Please try again.');
   } finally {
     btn.disabled = false;
     document.getElementById('loading').classList.remove('show');
