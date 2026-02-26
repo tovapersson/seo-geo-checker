@@ -69,15 +69,12 @@
       color: var(--muted);
       text-decoration: none;
       transition: all 0.2s;
-      
     }
     .back-btn:hover { background: var(--text); color: white; border-color: var(--text); }
 
     .divider { width: 48px; height: 1px; background: var(--border); margin: 24px auto 0; }
 
-    /* Search */
     .search-wrap { margin: 44px 0 16px; }
-
     .search-box { display: flex; gap: 12px; align-items: center; }
 
     .search-box input {
@@ -98,7 +95,6 @@
     .search-box button:hover { background: var(--text); color: white; border-color: var(--text); }
     .search-box button:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    /* Loading */
     .loading { display: none; text-align: center; padding: 64px 0; }
     .loading.show { display: block; }
     .spinner {
@@ -109,7 +105,6 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .loading p { color: var(--muted); font-size: 0.9rem; font-style: italic; }
 
-    /* Results header */
     .results-header {
       display: none; align-items: center; justify-content: space-between;
       margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
@@ -119,7 +114,6 @@
     .results-title span { color: var(--text); }
     .geo-score { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; color: var(--text); }
 
-    /* Cards */
     .results { display: none; flex-direction: column; gap: 12px; }
     .results.show { display: flex; }
 
@@ -172,7 +166,6 @@
     .card-body.open { max-height: 300px; padding: 14px 24px 20px; }
     .card-body p { font-size: 0.88rem; color: var(--muted); font-style: italic; line-height: 1.65; }
 
-    /* Strategy box */
     .strategy-box {
       background: var(--white); border: 1px solid var(--border); border-radius: 8px;
       overflow: hidden; animation: fadeUp 0.3s ease 0.25s both;
@@ -198,7 +191,6 @@
     .strategy-body.open { max-height: 600px; padding: 14px 24px 20px; }
     .strategy-body p { font-size: 0.88rem; color: var(--muted); font-style: italic; line-height: 1.8; white-space: pre-line; }
 
-    /* Error */
     .error-msg {
       display: none; text-align: center; padding: 36px; color: var(--muted);
       background: var(--white); border: 1px solid var(--border);
@@ -206,7 +198,6 @@
     }
     .error-msg.show { display: block; }
 
-    /* State msg */
     .state-msg { text-align: center; padding: 72px 0; color: var(--muted); }
     .state-msg .icon { font-size: 1.4rem; margin-bottom: 14px; opacity: 0.4; }
     .state-msg p { font-size: 1rem; font-style: italic; font-weight: 300; }
@@ -216,13 +207,13 @@
   </style>
 </head>
 <body>
+  <a href="https://tovapersson.github.io/" class="back-btn">← Back to portfolio</a>
   <div class="container">
     <header>
       <div class="eyebrow">AI-Powered Analysis</div>
       <h1>GEO Tracker</h1>
       <p class="subtitle">Enter any URL and see how AI-engines perceive your brand.</p>
-      <a href="https://tovapersson.github.io/" class="back-btn">← Back to portfolio</a>
-    <div class="divider" style="margin-top:24px"></div>
+      <div class="divider"></div>
     </header>
 
     <div class="search-wrap">
@@ -255,8 +246,7 @@
   </div>
 
   <script>
-    // ⚠️ Ersätt DIN_NYCKEL_HÄR med din Anthropic API-nyckel:
-    const ANTHROPIC_API_KEY = "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";
+    const ANTHROPIC_API_KEY = "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";
 
     function scoreClass(s) {
       if (s >= 8) return 'good';
@@ -343,7 +333,6 @@ Return ONLY valid JSON, nothing else:
       const container = document.getElementById('results');
       container.innerHTML = '';
 
-      // Pillar cards
       data.pillars.forEach((p, i) => {
         const cls = scoreClass(p.score);
         const card = document.createElement('div');
@@ -369,7 +358,6 @@ Return ONLY valid JSON, nothing else:
         }, 100 + i * 80);
       });
 
-      // Strategy card
       if (data.strategy) {
         const stratCard = document.createElement('div');
         stratCard.className = 'strategy-box';

@@ -1,5 +1,5 @@
 // ⚠️ Ersätt DIN_NYCKEL_HÄR med din Anthropic API-nyckel:
-const ANTHROPIC_API_KEY = "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";
+const ANTHROPIC_API_KEY = "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";
 
 function scoreClass(s) {
   if (s >= 8) return 'good';
@@ -136,7 +136,6 @@ function showError(msg) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Auto-fill current tab URL
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs[0]?.url?.startsWith('http')) {
       document.getElementById('urlInput').value = tabs[0].url;
