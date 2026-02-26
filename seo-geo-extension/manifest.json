@@ -4,6 +4,9 @@
   "version": "1.0",
   "description": "Analyze how AI-engines perceive any website.",
   "permissions": ["activeTab", "notifications"],
+  "host_permissions": [
+    "https://snazzy-palmier-6ffedd.netlify.app/*"
+  ],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
