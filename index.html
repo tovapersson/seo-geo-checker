@@ -133,7 +133,6 @@
     .card-header {
       display: flex; align-items: center; gap: 16px;
       padding: 20px 24px; cursor: pointer; transition: background 0.15s;
-      user-select: none;
     }
     .card-header:hover { background: var(--surface); }
 
@@ -160,16 +159,11 @@
     .score-bar.low  { background: #8b1a1a; }
 
     .card-body {
-      padding: 0 24px;
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.4s ease, padding 0.3s ease;
+      padding: 0 24px; max-height: 0; overflow: hidden;
+      transition: max-height 0.35s ease, padding 0.3s ease;
     }
-    .card-body.open {
-      max-height: 400px;
-      padding: 16px 24px 22px;
-    }
-    .card-body p { font-size: 0.95rem; color: var(--muted); font-style: italic; line-height: 1.7; }
+    .card-body.open { max-height: 300px; padding: 14px 24px 20px; }
+    .card-body p { font-size: 0.88rem; color: var(--muted); font-style: italic; line-height: 1.65; }
 
     .strategy-box {
       background: var(--white); border: 1px solid var(--border); border-radius: 8px;
@@ -178,7 +172,6 @@
     .strategy-header {
       display: flex; align-items: center; gap: 16px;
       padding: 20px 24px; cursor: pointer; transition: background 0.15s;
-      user-select: none;
     }
     .strategy-header:hover { background: var(--surface); }
     .strategy-title {
@@ -191,16 +184,11 @@
       white-space: nowrap; color: var(--text);
     }
     .strategy-body {
-      padding: 0 24px;
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.4s ease, padding 0.3s ease;
+      padding: 0 24px; max-height: 0; overflow: hidden;
+      transition: max-height 0.35s ease, padding 0.3s ease;
     }
-    .strategy-body.open {
-      max-height: 600px;
-      padding: 16px 24px 22px;
-    }
-    .strategy-body p { font-size: 0.95rem; color: var(--muted); font-style: italic; line-height: 1.8; white-space: pre-line; }
+    .strategy-body.open { max-height: 600px; padding: 14px 24px 20px; }
+    .strategy-body p { font-size: 0.88rem; color: var(--muted); font-style: italic; line-height: 1.8; white-space: pre-line; }
 
     .error-msg {
       display: none; text-align: center; padding: 36px; color: var(--muted);
@@ -317,6 +305,10 @@ Return ONLY valid JSON, nothing else:
       return 'low';
     }
 
+    function toggleBody(el) {
+      el.nextElementSibling.classList.toggle('open');
+    }
+
     function renderResults(url, data) {
       try {
         document.getElementById('urlLabel').textContent = new URL(url).hostname;
@@ -334,7 +326,7 @@ Return ONLY valid JSON, nothing else:
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-          <div class="card-header">
+          <div class="card-header" onclick="toggleBody(this)">
             <div class="card-left">
               <div class="card-pillar">${p.name}</div>
               <div class="card-question">${p.question}</div>
@@ -348,12 +340,6 @@ Return ONLY valid JSON, nothing else:
             <p>${p.answer}</p>
           </div>
         `;
-
-        // Lägg till click-event direkt på elementet
-        card.querySelector('.card-header').addEventListener('click', function() {
-          card.querySelector('.card-body').classList.toggle('open');
-        });
-
         container.appendChild(card);
         setTimeout(() => {
           card.querySelector('.score-bar').style.width = p.score * 10 + '%';
@@ -364,7 +350,7 @@ Return ONLY valid JSON, nothing else:
         const stratCard = document.createElement('div');
         stratCard.className = 'strategy-box';
         stratCard.innerHTML = `
-          <div class="strategy-header">
+          <div class="strategy-header" onclick="toggleBody(this)">
             <div class="strategy-title">Your Next Steps</div>
             <div class="strategy-badge">Action Plan</div>
           </div>
@@ -372,11 +358,6 @@ Return ONLY valid JSON, nothing else:
             <p>${data.strategy}</p>
           </div>
         `;
-
-        stratCard.querySelector('.strategy-header').addEventListener('click', function() {
-          stratCard.querySelector('.strategy-body').classList.toggle('open');
-        });
-
         container.appendChild(stratCard);
       }
 
